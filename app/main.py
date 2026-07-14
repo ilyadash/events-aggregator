@@ -1,14 +1,16 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from app.api.routes import events, health, registrations, sync
-from app.scheduler import start_scheduler, stop_scheduler
+from app.scheduler import run_sync_job, start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     start_scheduler()
+    asyncio.create_task(run_sync_job())
     yield
     stop_scheduler()
 

@@ -1,61 +1,53 @@
+import logging
 from datetime import datetime
 
-from sqlalchemy import select, func, update as sa_update
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.database import async_session_factory
-from app.models.event import Event
-from app.models.place import Place
-from app.services.provider_client import provider_client
+from app.repositories.event_repository import EventRepository
+from app.repositories.sync_repository import SyncRepository
+from app.services.events_paginator import EventsPaginator
+from app.services.provider_client import EventsProviderClient
 
-
-async def upsert_place(session: AsyncSession, data: dict) -> Place:
-    existing = await session.get(Place, data["id"])
-    if existing is None:
-        place = Place(**data)
-        session.add(place)
-        return place
-    for key, val in data.items():
-        setattr(existing, key, val)
-    return existing
-
-
-async def upsert_event(session: AsyncSession, data: dict) -> Event:
-    place_data = data.pop("place")
-    data["place_id"] = place_data["id"]
-    await upsert_place(session, place_data)
-
-    existing = await session.get(Event, data["id"])
-    if existing is None:
-        event = Event(**data)
-        session.add(event)
-        return event
-    for key, val in data.items():
-        setattr(existing, key, val)
-    return existing
+logger = logging.getLogger(__name__)
 
 
 async def sync_all() -> None:
     async with async_session_factory() as session:
-        max_changed = await session.execute(
-            select(func.max(Event.changed_at))
-        )
-        max_changed_val: datetime | None = max_changed.scalar()
+        sync_repo = SyncRepository(session)
+        last_changed = await sync_repo.get_last_changed_at()
 
-    if max_changed_val is None:
+    if last_changed is None:
         changed_at = "2000-01-01"
     else:
-        changed_at = max_changed_val.strftime("%Y-%m-%d")
+        changed_at = last_changed.strftime("%Y-%m-%d")
 
-    cursor: str | None = None
-    while True:
-        resp = await provider_client.fetch_events(changed_at, cursor)
-        results = resp.get("results", [])
+    client = EventsProviderClient()
+    logger.info("Sync started, changed_at=%s", changed_at)
+
+    max_changed = None
+
+    try:
+        async for event_data in EventsPaginator(client, changed_at):
+            async with async_session_factory() as session:
+                repo = EventRepository(session)
+                await repo.upsert(event_data)
+                await session.commit()
+
+            changed = event_data.get("changed_at")
+            if changed:
+                dt = datetime.fromisoformat(changed)
+                if max_changed is None or dt > max_changed:
+                    max_changed = dt
+
         async with async_session_factory() as session:
-            for item in results:
-                await upsert_event(session, item)
+            repo = SyncRepository(session)
+            await repo.update_sync_status("success", max_changed)
             await session.commit()
 
-        cursor = resp.get("next")
-        if cursor is None:
-            break
+        logger.info("Sync completed successfully")
+    except Exception as e:
+        logger.error("Sync failed: %s", e)
+        async with async_session_factory() as session:
+            repo = SyncRepository(session)
+            await repo.update_sync_status("failed")
+            await session.commit()
+        raise
