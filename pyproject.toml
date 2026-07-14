@@ -2,11 +2,6 @@
 name = "events-aggregator"
 version = "0.1.0"
 requires-python = ">=3.9"
-
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 dependencies = [
     "fastapi[standard]>=0.115",
     "uvicorn[standard]>=0.34",
@@ -17,6 +12,10 @@ dependencies = [
     "pydantic-settings>=2.7",
     "apscheduler>=3.11",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
