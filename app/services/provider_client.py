@@ -1,6 +1,5 @@
-from datetime import datetime
-from uuid import UUID
 from typing import Any
+from uuid import UUID
 
 import httpx
 
@@ -13,10 +12,10 @@ class ProviderError(Exception):
         self.detail = detail
 
 
-class ProviderClient:
-    def __init__(self) -> None:
-        self.base_url = settings.provider_base_url
-        self.api_key = settings.provider_api_key
+class EventsProviderClient:
+    def __init__(self, base_url: str = "", api_key: str = "") -> None:
+        self.base_url = base_url or settings.provider_base_url
+        self.api_key = api_key or settings.provider_api_key
         self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
@@ -74,6 +73,3 @@ class ProviderClient:
         if resp.status_code != 200:
             raise ProviderError(resp.status_code, resp.text)
         return resp.json()
-
-
-provider_client = ProviderClient()
