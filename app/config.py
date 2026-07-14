@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     provider_api_key: str = ""
     sync_cron: str = "0 3 * * *"
     page_size: int = 20
+    seats_cache_ttl: int = 30
 
 
 settings = Settings()
