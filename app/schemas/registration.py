@@ -15,9 +15,5 @@ class RegisterOut(BaseModel):
     ticket_id: UUID
 
 
-class UnregisterIn(BaseModel):
-    ticket_id: UUID
-
-
 class UnregisterOut(BaseModel):
     success: bool
