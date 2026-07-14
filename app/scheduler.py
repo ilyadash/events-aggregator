@@ -16,10 +16,10 @@ async def run_sync_job():
 
 
 def start_scheduler():
-    trigger = CronTrigger.from_crontab(settings.sync_cron)
+    trigger = CronTrigger.from_crontab(settings.SYNC_CRON)
     scheduler.add_job(run_sync_job, trigger=trigger, id="daily_sync")
     scheduler.start()
-    logger.info("Scheduler started with cron: %s", settings.sync_cron)
+    logger.info("Scheduler started with cron: %s", settings.SYNC_CRON)
 
 
 def stop_scheduler():

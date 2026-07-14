@@ -26,7 +26,7 @@ class GetSeatsUsecase:
 
         now = time.time()
         cached = _seats_cache.get(event_id)
-        if cached and now - cached[0] < settings.seats_cache_ttl:
+        if cached and now - cached[0] < settings.SEATS_CACHE_TTL:
             return {"event_id": event_id, "available_seats": cached[1]}
 
         seats = await self.client.fetch_seats(event_id)
