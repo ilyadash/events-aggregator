@@ -1,7 +1,7 @@
 [project]
 name = "events-aggregator"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
     "fastapi[standard]>=0.115",
     "uvicorn[standard]>=0.34",
@@ -27,3 +27,9 @@ include = ["app*", "tests*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
