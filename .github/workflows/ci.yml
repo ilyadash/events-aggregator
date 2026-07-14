@@ -41,6 +41,8 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: Setup environment
         run: uv sync
+      - name: Apply migrations
+        run: uv run alembic upgrade head
       - name: Start unit tests
         run: uv run pytest tests/unit/
 
