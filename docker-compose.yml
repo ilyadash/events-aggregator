@@ -16,9 +16,8 @@ services:
 
   app:
     build: .
-    environment:
-      PROVIDER_BASE_URL: http://events-provider.dev-2.python-labs.ru
-      PROVIDER_API_KEY: "${PROVIDER_API_KEY}"
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:
