@@ -3,16 +3,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
 
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int
-    POSTGRES_DB: str
-    PROVIDER_BASE_URL: str
-    PROVIDER_API_KEY: str
-    SYNC_CRON: str
-    PAGE_SIZE: int
-    SEATS_CACHE_TTL: int
+    POSTGRES_USER: str = "postgres_user"
+    POSTGRES_PASSWORD: str = "postgres_pass"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "aggregator_db"
+    EVENT_PROVIDER_URL: str = "http://events-provider.dev-2.python-labs.ru"
+    LMS_API_KEY: str = ""
+    SYNC_CRON: str = "0 3 * * *"
+    PAGE_SIZE: int = 20
+    SEATS_CACHE_TTL: int = 30
 
     model_config = SettingsConfigDict(
         env_file=".env",

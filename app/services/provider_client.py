@@ -14,8 +14,8 @@ class ProviderError(Exception):
 
 class EventsProviderClient:
     def __init__(self, base_url: str = "", api_key: str = "") -> None:
-        self.base_url = base_url or settings.PROVIDER_BASE_URL
-        self.api_key = api_key or settings.PROVIDER_API_KEY
+        self.base_url = base_url or settings.EVENT_PROVIDER_URL
+        self.api_key = api_key or settings.LMS_API_KEY
         self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
