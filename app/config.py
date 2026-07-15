@@ -21,6 +21,22 @@ class Settings(BaseSettings):
         frozen=True
     )
 
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        return (
+            init_settings,          # 1. Явный вызов в коде: Settings(app_name="...")
+            settings_cls,           # 2. Дефолтные значения из кода
+            env_settings,           # 3. Переменные окружения ОС
+            dotenv_settings,        # 4. НАИВЫСШИЙ: Значения из .env файла
+        )
+
     @property
     def DATABASE_URL(self) -> str:
         """Assemble the asyncpg DSN from individual PostgreSQL settings."""
