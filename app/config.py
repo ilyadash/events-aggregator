@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "aggregator_db"
-    EVENT_PROVIDER_URL: str = "http://events-provider.dev-2.python-labs.ru"
+    EVENT_PROVIDER_URL: str = "https://events-provider.dev-2.python-labs.ru"
     LMS_API_KEY: str = ""
     SYNC_CRON: str = "0 3 * * *"
     PAGE_SIZE: int = 20
