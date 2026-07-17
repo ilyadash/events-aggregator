@@ -47,6 +47,8 @@ jobs:
         run: uv run alembic upgrade head
       - name: Start unit tests
         run: uv run pytest tests/unit/
+      - name: Start integration tests
+        run: uv run pytest tests/integration/
 
   build:
     needs: test
