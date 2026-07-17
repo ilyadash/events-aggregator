@@ -26,9 +26,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DATABASE_NAME: ${{ vars.POSTGRES_DATABASE_NAME }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DATABASE_NAME }}
         ports:
           - ${{ vars.POSTGRES_PORT }}:5432
         options: >-
