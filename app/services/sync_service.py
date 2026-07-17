@@ -34,7 +34,7 @@ async def sync_all() -> None:
 
             changed = event_data.get("changed_at")
             if changed:
-                dt = datetime.fromisoformat(changed)
+                dt = changed if isinstance(changed, datetime) else datetime.fromisoformat(changed)
                 if max_changed is None or dt > max_changed:
                     max_changed = dt
 
