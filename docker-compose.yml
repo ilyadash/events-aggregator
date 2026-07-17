@@ -20,6 +20,13 @@ services:
       - .env
     ports:
       - "8000:8000"
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+          ignore:
+            - __pycache__/
     depends_on:
       db:
         condition: service_healthy
