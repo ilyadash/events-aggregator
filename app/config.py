@@ -3,11 +3,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
 
-    POSTGRES_USER: str = "postgres_user"
+    POSTGRES_USERNAME: str = "POSTGRES_USERNAME"
     POSTGRES_PASSWORD: str = "postgres_pass"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "aggregator_db"
+    POSTGRES_DATABASE_NAME: str = "aggregator_db"
     EVENT_PROVIDER_URL: str = "https://events-provider.dev-2.python-labs.ru"
     LMS_API_KEY: str = ""
     SYNC_CRON: str = "0 3 * * *"
