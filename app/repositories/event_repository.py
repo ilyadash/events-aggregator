@@ -36,7 +36,8 @@ class EventRepository:
         base_q = select(Event).join(Place)
 
         if date_from:
-            base_q = base_q.where(Event.event_time >= date_from)
+            dt = datetime.fromisoformat(date_from)
+            base_q = base_q.where(Event.event_time >= dt)
 
         count_q = select(func.count()).select_from(base_q.subquery())
         total = (await self.session.execute(count_q)).scalar_one()
