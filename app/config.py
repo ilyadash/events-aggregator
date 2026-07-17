@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
 
+    POSTGRES_CONNECTION_STRING: str = ""
     POSTGRES_USERNAME: str = "POSTGRES_USERNAME"
     POSTGRES_PASSWORD: str = "postgres_pass"
     POSTGRES_HOST: str = "localhost"
@@ -17,17 +18,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore",
-        frozen=True
+        extra="ignore"
     )
 
     @property
     def DATABASE_URL(self) -> str:
         """Assemble the asyncpg DSN from individual PostgreSQL settings."""
-        return (
-            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        if self.POSTGRES_CONNECTION_STRING is None or self.POSTGRES_CONNECTION_STRING == '':
+            self.POSTGRES_CONNECTION_STRING = f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@"
+            self.POSTGRES_CONNECTION_STRING += f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/"
+            self.POSTGRES_CONNECTION_STRING += f"{self.POSTGRES_DATABASE_NAME}"
+        return self.POSTGRES_CONNECTION_STRING
 
 
 settings = Settings()
