@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
 
     POSTGRES_CONNECTION_STRING: str = ""
-    POSTGRES_USERNAME: str = "POSTGRES_USERNAME"
+    POSTGRES_USERNAME: str = "postgres_user"
     POSTGRES_PASSWORD: str = "postgres_pass"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
