@@ -1,10 +1,19 @@
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import DateTime, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.event import Event
 from app.models.place import Place
+
+
+def _convert_datetime_strings(model_class, data: dict) -> dict:
+    for col in model_class.__table__.columns:
+        if isinstance(col.type, DateTime) and col.name in data:
+            val = data[col.name]
+            if isinstance(val, str):
+                data[col.name] = datetime.fromisoformat(val)
+    return data
 
 
 class EventRepository:
@@ -48,6 +57,7 @@ class EventRepository:
         data["place_id"] = place_data["id"]
         await self._upsert_place(place_data)
 
+        data = _convert_datetime_strings(Event, data)
         existing = await self.session.get(Event, data["id"])
         if existing is None:
             event = Event(**data)
@@ -58,6 +68,7 @@ class EventRepository:
         return existing
 
     async def _upsert_place(self, data: dict) -> Place:
+        data = _convert_datetime_strings(Place, data)
         existing = await self.session.get(Place, data["id"])
         if existing is None:
             place = Place(**data)
