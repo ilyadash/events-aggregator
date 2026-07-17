@@ -7,7 +7,8 @@ WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY requirements-prod.txt wheels/ ./
+COPY requirements-prod.txt .
+COPY wheels/ wheels/
 RUN uv venv && uv pip install --no-index --find-links wheels/ -r requirements-prod.txt
 
 COPY . .
