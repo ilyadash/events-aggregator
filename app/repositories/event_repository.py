@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import contains_eager, joinedload
 
 from app.models.event import Event
 from app.models.place import Place
@@ -22,7 +23,7 @@ class EventRepository:
 
     async def get_by_id(self, event_id: str) -> Event | None:
         result = await self.session.execute(
-            select(Event).where(Event.id == event_id)
+            select(Event).options(joinedload(Event.place)).where(Event.id == event_id)
         )
         return result.scalar_one_or_none()
 
@@ -41,7 +42,12 @@ class EventRepository:
         total = (await self.session.execute(count_q)).scalar_one()
 
         offset = (page - 1) * page_size
-        rows_q = base_q.order_by(Event.event_time).offset(offset).limit(page_size)
+        rows_q = (
+            base_q.options(contains_eager(Event.place))
+            .order_by(Event.event_time)
+            .offset(offset)
+            .limit(page_size)
+        )
         rows = (await self.session.execute(rows_q)).scalars().all()
 
         return list(rows), total
