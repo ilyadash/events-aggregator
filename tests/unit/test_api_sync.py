@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,4 +13,5 @@ async def test_trigger_sync(client, monkeypatch):
 
     assert resp.status_code == 200
     assert resp.json() == {"status": "started"}
+    await asyncio.sleep(0)
     mock_job.assert_called_once_with()
