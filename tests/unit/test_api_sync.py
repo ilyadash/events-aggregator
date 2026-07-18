@@ -12,4 +12,4 @@ async def test_trigger_sync(client, monkeypatch):
 
     assert resp.status_code == 200
     assert resp.json() == {"status": "started"}
-    mock_job.assert_awaited_once_with()
+    mock_job.assert_called_once_with()
