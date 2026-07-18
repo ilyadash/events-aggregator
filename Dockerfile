@@ -7,11 +7,11 @@ WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY requirements-prod.txt wheels/ ./
-RUN uv venv && uv pip install --no-index --find-links wheels/ -r requirements-prod.txt
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
-RUN uv pip install --no-index --find-links wheels/ --no-deps -e .
+RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 
