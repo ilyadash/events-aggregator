@@ -1,4 +1,5 @@
 import asyncio
+
 from fastapi import APIRouter
 
 from app.scheduler import run_sync_job
