@@ -36,4 +36,8 @@ markers = [
     "integration: marks tests that require a real PostgreSQL container via testcontainers",
 ]
 
+[[tool.uv.index]]
+url = "https://pypi-mirror.gitverse.ru"
+name = "russian-mirror"
+default = true
 
