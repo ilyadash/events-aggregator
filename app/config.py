@@ -24,11 +24,15 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         """Assemble the asyncpg DSN from individual PostgreSQL settings."""
-        if self.POSTGRES_CONNECTION_STRING is None or self.POSTGRES_CONNECTION_STRING == '':
-            self.POSTGRES_CONNECTION_STRING = f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@"
-            self.POSTGRES_CONNECTION_STRING += f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/"
-            self.POSTGRES_CONNECTION_STRING += f"{self.POSTGRES_DATABASE_NAME}"
-        return self.POSTGRES_CONNECTION_STRING
+        url = self.POSTGRES_CONNECTION_STRING
+        if url is None or url == '':
+            url = f"postgresql+asyncpg://{self.POSTGRES_USERNAME}:{self.POSTGRES_PASSWORD}@"
+            url += f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/"
+            url += f"{self.POSTGRES_DATABASE_NAME}"
+        elif not url.startswith("postgresql"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
 
 
 settings = Settings()
