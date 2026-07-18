@@ -18,6 +18,6 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY app/ app/
 COPY alembic/ alembic/
 COPY alembic.ini run.sh ./
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev && rm pyproject.toml uv.lock
 EXPOSE 8000
 CMD ["bash", "./run.sh"]
