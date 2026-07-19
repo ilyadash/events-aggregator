@@ -124,7 +124,7 @@ async def test_list_events_passes_query_params(client, list_events_uc):
 async def test_list_events_invalid_pagination(client, list_events_uc, query):
     resp = await client.get(f"/api/events?{query}")
 
-    assert resp.status_code == 422
+    assert resp.status_code == 400
     list_events_uc.do.assert_not_awaited()
 
 
@@ -157,7 +157,7 @@ async def test_get_event_not_found(client, get_event_uc):
 async def test_get_event_invalid_uuid(client, get_event_uc):
     resp = await client.get("/api/events/not-a-uuid")
 
-    assert resp.status_code == 422
+    assert resp.status_code == 400
     get_event_uc.do.assert_not_awaited()
 
 
