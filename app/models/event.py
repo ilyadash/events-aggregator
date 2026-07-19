@@ -16,7 +16,9 @@ class Event(Base):
     place_id = Column(UUID(as_uuid=True), ForeignKey("places.id"), nullable=False)
     event_time = Column(DateTime(timezone=True), nullable=False)
     registration_deadline = Column(DateTime(timezone=True), nullable=False)
-    status = Column(Enum(EventStatus), nullable=False)
+    status = Column(
+        Enum(EventStatus, values_callable=lambda obj: [e.value for e in obj]), nullable=False
+    )
     number_of_visitors = Column(Integer, nullable=False, default=0)
     changed_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
