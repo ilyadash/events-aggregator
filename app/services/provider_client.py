@@ -59,7 +59,7 @@ class EventsProviderClient:
         resp = await client.post(
             f"/api/events/{event_id}/register/", json=body
         )
-        if resp.status_code != 201:
+        if resp.status_code not in (200, 201):
             raise ProviderError(resp.status_code, resp.text)
         return resp.json()
 
