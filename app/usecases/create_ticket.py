@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
+from app.models.event_status import EventStatus
 from app.repositories.event_repository import EventRepository
 from app.repositories.ticket_repository import TicketRepository
 from app.services.provider_client import EventsProviderClient, ProviderError
@@ -28,7 +29,7 @@ class CreateTicketUsecase:
         event = await self.events.get_by_id(event_id)
         if not event:
             raise ProviderError(404, "Event not found")
-        if event.status != "published":
+        if event.status != EventStatus.PUBLISHED:
             raise ProviderError(400, "Event is not published")
         if datetime.now(timezone.utc) > event.registration_deadline:
             raise ProviderError(400, "Registration deadline has passed")

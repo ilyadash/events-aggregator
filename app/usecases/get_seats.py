@@ -2,6 +2,7 @@ import time
 from uuid import UUID
 
 from app.config import settings
+from app.models.event_status import EventStatus
 from app.repositories.event_repository import EventRepository
 from app.services.provider_client import EventsProviderClient, ProviderError
 
@@ -21,7 +22,7 @@ class GetSeatsUsecase:
         event = await self.events.get_by_id(str(event_id))
         if not event:
             raise ProviderError(404, "Event not found")
-        if event.status != "published":
+        if event.status != EventStatus.PUBLISHED:
             raise ProviderError(400, "Event is not published")
 
         now = time.time()
