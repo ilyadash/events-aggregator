@@ -94,7 +94,7 @@ async def test_create_ticket_invalid_body(
 
     resp = await client.post("/api/tickets", json=body)
 
-    assert resp.status_code == 422
+    assert resp.status_code == 400
     create_ticket_uc.do.assert_not_awaited()
 
 
@@ -135,5 +135,5 @@ async def test_cancel_ticket_provider_error(
 async def test_cancel_ticket_invalid_uuid(client, cancel_ticket_uc):
     resp = await client.delete("/api/tickets/not-a-uuid")
 
-    assert resp.status_code == 422
+    assert resp.status_code == 400
     cancel_ticket_uc.do.assert_not_awaited()

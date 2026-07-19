@@ -3,6 +3,8 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.api.routes import events, health, sync, tickets
 from app.scheduler import start_scheduler, stop_scheduler
@@ -22,6 +24,12 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Events Aggregator", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(status_code=400, content={"detail": exc.errors()})
+
 
 app.include_router(events.router)
 app.include_router(tickets.router)
