@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DATABASE_NAME: str = "aggregator_db"
-    EVENT_PROVIDER_URL: str = "http://student-system-events-provider-web.student-system-events-provider.svc:8000"
+    EVENT_PROVIDER_URL: str = ""
     LMS_API_KEY: str = ""
     SYNC_CRON: str = "0 3 * * *"
     PAGE_SIZE: int = 20
