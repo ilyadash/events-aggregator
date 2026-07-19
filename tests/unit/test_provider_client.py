@@ -96,7 +96,8 @@ async def test_register_success(client):
 @pytest.mark.asyncio
 async def test_register_url(client):
     client._client.post.return_value = MagicMock(
-        status_code=201, json=lambda: {"ticket_id": "ticket-123"}, text='{"ticket_id": "ticket-123"}'
+        status_code=201, json=lambda: {"ticket_id": "ticket-123"},
+        text='{"ticket_id": "ticket-123"}'
     )
     await client.register(TEST_EVENT_ID, {"seat": "A1"})
     client._client.post.assert_called_once_with(
