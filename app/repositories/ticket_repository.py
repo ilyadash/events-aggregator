@@ -30,6 +30,7 @@ class TicketRepository:
             registered_at=registered_at,
         )
         self.session.add(reg)
+        await self.session.commit()
 
     async def get_by_ticket_id(self, ticket_id: UUID) -> Registration | None:
         result = await self.session.execute(
@@ -44,3 +45,4 @@ class TicketRepository:
         reg = result.scalar_one_or_none()
         if reg:
             await self.session.delete(reg)
+            await self.session.commit()
