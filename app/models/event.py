@@ -17,7 +17,7 @@ class Event(Base):
     event_time = Column(DateTime(timezone=True), nullable=False)
     registration_deadline = Column(DateTime(timezone=True), nullable=False)
     status = Column(
-        Enum(EventStatus, values_callable=lambda obj: [e.value for e in obj]), nullable=False
+        Enum(EventStatus, values_callable=lambda obj: [e.value for e in obj], native_enum=False), nullable=False
     )
     number_of_visitors = Column(Integer, nullable=False, default=0)
     changed_at = Column(DateTime(timezone=True), nullable=False)
