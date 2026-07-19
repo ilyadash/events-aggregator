@@ -66,7 +66,7 @@ async def test_fetch_seats_url(client):
     )
     await client.fetch_seats(TEST_EVENT_ID)
     client._client.get.assert_called_once_with(
-        "/api/events/00000000-0000-0000-0000-000000000001/seats/"
+        "http://test.api/api/events/00000000-0000-0000-0000-000000000001/seats/"
     )
 
 
@@ -101,7 +101,7 @@ async def test_register_url(client):
     )
     await client.register(TEST_EVENT_ID, {"seat": "A1"})
     client._client.post.assert_called_once_with(
-        "/api/events/00000000-0000-0000-0000-000000000001/register/",
+        "http://test.api/api/events/00000000-0000-0000-0000-000000000001/register/",
         json={"seat": "A1"},
     )
 
@@ -129,7 +129,7 @@ async def test_unregister_url(client):
     await client.unregister(TEST_EVENT_ID, "ticket-123")
     client._client.request.assert_called_once_with(
         "DELETE",
-        "/api/events/00000000-0000-0000-0000-000000000001/unregister/",
+        "http://test.api/api/events/00000000-0000-0000-0000-000000000001/unregister/",
         json={"ticket_id": "ticket-123"},
     )
 

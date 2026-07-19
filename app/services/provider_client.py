@@ -46,8 +46,7 @@ class EventsProviderClient:
 
     async def fetch_seats(self, event_id: UUID) -> list[str]:
         client = await self._get_client()
-        url = urljoin("/api/events/", str(event_id)+'/')
-        url = urljoin(url, "seats/")
+        url = urljoin(self.base_url, f"/api/events/{event_id}/seats/")
         resp = await client.get(url)
         if resp.status_code == 404:
             raise ProviderError(404, "Event not found")
@@ -59,8 +58,7 @@ class EventsProviderClient:
 
     async def register(self, event_id: UUID, body: dict) -> dict:
         client = await self._get_client()
-        url = urljoin("/api/events/", str(event_id)+'/')
-        url = urljoin(url, "register/")
+        url = urljoin(self.base_url, f"/api/events/{event_id}/register/")
         resp = await client.post(url, json=body)
         if resp.status_code not in (200, 201):
             raise ProviderError(resp.status_code, resp.text)
@@ -68,8 +66,7 @@ class EventsProviderClient:
 
     async def unregister(self, event_id: UUID, ticket_id: str) -> dict:
         client = await self._get_client()
-        url = urljoin("/api/events/", str(event_id)+'/')
-        url = urljoin(url, "unregister/")
+        url = urljoin(self.base_url, f"/api/events/{event_id}/unregister/")
         resp = await client.request(
             "DELETE",url,json={"ticket_id": ticket_id},
         )
