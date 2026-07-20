@@ -1,0 +1,350 @@
+classDiagram
+    direction TB
+
+    %% ═══════════════════ INFRASTRUCTURE ═══════════════════
+    class Base {
+        &lt;&lt;abstract&gt;&gt; DeclarativeBase
+    }
+    class AsyncSession {
+        &lt;&lt;SQLAlchemy&gt;&gt;
+        +execute()
+        +commit()
+        +add()
+        +delete()
+        +get()
+    }
+    class Settings {
+        &lt;&lt;singleton&gt;&gt;
+        +DATABASE_URL str (property)
+        +EVENT_PROVIDER_URL str
+        +LMS_API_KEY str
+        +SYNC_CRON str
+        +PAGE_SIZE int
+        +SEATS_CACHE_TTL int
+    }
+    class AsyncIOScheduler {
+        &lt;&lt;APScheduler&gt;&gt;
+        +add_job()
+        +start()
+        +shutdown()
+    }
+
+    %% ═══════════════════ ORM MODELS ═══════════════════
+    class EventStatus {
+        &lt;&lt;enumeration&gt;&gt;
+        NEW
+        PUBLISHED
+        FINISHED
+        REGISTRATION_CLOSED
+    }
+
+    class Event {
+        +UUID id
+        +str name
+        +UUID place_id FK
+        +datetime event_time
+        +datetime registration_deadline
+        +EventStatus status
+        +int number_of_visitors
+        +datetime changed_at
+        +datetime created_at
+        +Place place
+    }
+
+    class Place {
+        +UUID id
+        +str name
+        +str city
+        +str address
+        +str seats_pattern
+        +datetime changed_at
+        +list events
+    }
+
+    class Registration {
+        +int id
+        +UUID event_id FK
+        +str first_name
+        +str last_name
+        +str email
+        +str seat
+        +UUID ticket_id UNIQUE
+        +datetime registered_at
+    }
+
+    class SyncMetadata {
+        +int id
+        +datetime last_sync_time
+        +datetime last_changed_at
+        +str sync_status
+    }
+
+    Base <|-- Event
+    Base <|-- Place
+    Base <|-- Registration
+    Base <|-- SyncMetadata
+    Event --> EventStatus : status
+    Event "1" --> "1" Place : place
+    Place "1" --> "*" Event : events
+
+    %% ═══════════════════ REPOSITORIES ═══════════════════
+    class EventRepository {
+        -AsyncSession session
+        +get_by_id(event_id) Event?
+        +list_paginated(date_from, page, page_size) tuple
+        +get_max_changed_at() datetime?
+        +upsert(data) Event
+        -_upsert_place(data) Place
+    }
+
+    class TicketRepository {
+        -AsyncSession session
+        +create(event_id, ticket_id, ...) None
+        +get_by_ticket_id(ticket_id) Registration?
+        +delete(ticket_id) None
+    }
+
+    class SyncRepository {
+        -AsyncSession session
+        +get_last_changed_at() datetime?
+        +update_sync_status(status, changed_at) None
+    }
+
+    EventRepository --> AsyncSession : session
+    TicketRepository --> AsyncSession : session
+    SyncRepository --> AsyncSession : session
+    EventRepository ..> Event : reads/writes
+    EventRepository ..> Place : upserts
+    TicketRepository ..> Registration : reads/writes
+    SyncRepository ..> SyncMetadata : reads/writes
+
+    %% ═══════════════════ SERVICES ═══════════════════
+    class EventsProviderClient {
+        -str base_url
+        -str api_key
+        -AsyncClient _client
+        +fetch_events(changed_at, cursor?) dict
+        +fetch_seats(event_id) list
+        +register(event_id, body) dict
+        +unregister(event_id, ticket_id) dict
+        +close() None
+    }
+
+    class ProviderError {
+        +int status_code
+        +Any detail
+    }
+
+    class EventsPaginator {
+        -EventsProviderClient _client
+        -str _changed_at
+        -str? _cursor
+        -list _buffer
+        -bool _exhausted
+        +__aiter__()
+        +__anext__()
+    }
+
+    EventsPaginator --> EventsProviderClient : _client
+    EventsProviderClient ..> ProviderError : raises
+    EventsPaginator ..> EventsProviderClient : fetch_events()
+
+    %% ═══════════════════ USE CASES ═══════════════════
+    class ListEventsUsecase {
+        -EventRepository events
+        +do(date_from, page, page_size, base_url) EventListResponse
+    }
+
+    class GetEventUsecase {
+        -EventRepository events
+        +do(event_id) EventDetailOut?
+    }
+
+    class GetSeatsUsecase {
+        -EventsProviderClient client
+        -EventRepository events
+        +do(event_id) dict
+    }
+
+    class CreateTicketUsecase {
+        -EventsProviderClient client
+        -EventRepository events
+        -TicketRepository tickets
+        +do(event_id, first_name, last_name, email, seat) UUID
+    }
+
+    class CancelTicketUsecase {
+        -EventsProviderClient client
+        -EventRepository events
+        -TicketRepository tickets
+        +do(ticket_id) bool
+    }
+
+    ListEventsUsecase --> EventRepository : events
+    GetEventUsecase --> EventRepository : events
+    GetSeatsUsecase --> EventsProviderClient : client
+    GetSeatsUsecase --> EventRepository : events
+    CreateTicketUsecase --> EventsProviderClient : client
+    CreateTicketUsecase --> EventRepository : events
+    CreateTicketUsecase --> TicketRepository : tickets
+    CancelTicketUsecase --> EventsProviderClient : client
+    CancelTicketUsecase --> EventRepository : events
+    CancelTicketUsecase --> TicketRepository : tickets
+
+    %% ═══════════════════ SCHEMAS / DTO ═══════════════════
+    class PlaceBriefOut {
+        +UUID id
+        +str name
+        +str city
+        +str address
+    }
+    class PlaceDetailOut {
+        +UUID id
+        +str name
+        +str city
+        +str address
+        +str seats_pattern
+    }
+    class EventBriefOut {
+        +UUID id
+        +str name
+        +PlaceBriefOut place
+        +datetime event_time
+        +datetime registration_deadline
+        +str status
+        +int number_of_visitors
+    }
+    class EventDetailOut {
+        +UUID id
+        +str name
+        +PlaceDetailOut place
+        +datetime event_time
+        +datetime registration_deadline
+        +str status
+        +int number_of_visitors
+    }
+    class EventListResponse {
+        +int count
+        +str? next
+        +str? previous
+        +list results
+    }
+    class RegisterIn {
+        +UUID event_id
+        +str first_name
+        +str last_name
+        +EmailStr email
+        +str seat
+    }
+    class RegisterOut {
+        +UUID ticket_id
+    }
+    class UnregisterOut {
+        +bool success
+    }
+    class SeatsOut {
+        +UUID event_id
+        +list available_seats
+    }
+
+    ListEventsUsecase ..> EventListResponse : returns
+    ListEventsUsecase ..> EventBriefOut : builds
+    ListEventsUsecase ..> PlaceBriefOut : builds
+    GetEventUsecase ..> EventDetailOut : returns
+    GetEventUsecase ..> PlaceDetailOut : builds
+    EventListResponse --> EventBriefOut : results
+    EventBriefOut --> PlaceBriefOut : place
+    EventDetailOut --> PlaceDetailOut : place
+
+    %% ═══════════════════ ROUTES / HTTP ═══════════════════
+    class EventsRouter {
+        &lt;&lt;APIRouter tags=events&gt;&gt;
+        +GET /api/events
+        +GET /api/events/event_id
+        +GET /api/events/event_id/seats
+    }
+    class TicketsRouter {
+        &lt;&lt;APIRouter tags=tickets&gt;&gt;
+        +POST /api/tickets
+        +DELETE /api/tickets/ticket_id
+    }
+    class SyncRouter {
+        &lt;&lt;APIRouter tags=sync&gt;&gt;
+        +POST /api/sync/trigger
+    }
+    class HealthRouter {
+        &lt;&lt;APIRouter tags=health&gt;&gt;
+        +GET /api/health
+    }
+
+    EventsRouter --> ListEventsUsecase : ListEventsUCDep
+    EventsRouter --> GetEventUsecase : GetEventUCDep
+    EventsRouter --> GetSeatsUsecase : GetSeatsUCDep
+    TicketsRouter --> CreateTicketUsecase : CreateTicketUCDep
+    TicketsRouter --> CancelTicketUsecase : CancelTicketUCDep
+    SyncRouter ..> sync_service : asyncio.create_task
+    EventsRouter ..> SeatsOut : response
+    TicketsRouter ..> RegisterIn : body
+    TicketsRouter ..> RegisterOut : response
+    TicketsRouter ..> UnregisterOut : response
+
+    %% ═══════════════════ DI CONTAINER ═══════════════════
+    class Deps {
+        &lt;&lt;module&gt;&gt;
+        +get_session() AsyncSession
+        +get_provider_client() EventsProviderClient
+        +get_event_repo(session) EventRepository
+        +get_ticket_repo(session) TicketRepository
+        +get_sync_repo(session) SyncRepository
+        +get_list_events_uc(events) ListEventsUsecase
+        +get_get_event_uc(events) GetEventUsecase
+        +get_get_seats_uc(client, events) GetSeatsUsecase
+        +get_create_ticket_uc(...) CreateTicketUsecase
+        +get_cancel_ticket_uc(...) CancelTicketUsecase
+    }
+
+    Deps ..> EventRepository : factory
+    Deps ..> TicketRepository : factory
+    Deps ..> SyncRepository : factory
+    Deps ..> EventsProviderClient : factory
+    Deps ..> ListEventsUsecase : factory
+    Deps ..> GetEventUsecase : factory
+    Deps ..> GetSeatsUsecase : factory
+    Deps ..> CreateTicketUsecase : factory
+    Deps ..> CancelTicketUsecase : factory
+
+    %% ═══════════════════ SCHEDULER + SYNC ═══════════════════
+    class Scheduler {
+        &lt;&lt;module&gt;&gt;
+        AsyncIOScheduler scheduler
+        +start_scheduler()
+        +stop_scheduler()
+        +run_sync_job()
+    }
+
+    class SyncService {
+        &lt;&lt;module&gt;&gt;
+        +sync_all() None
+    }
+
+    Scheduler --> AsyncIOScheduler : scheduler
+    Scheduler ..> SyncService : sync_all()
+    Settings --> Scheduler : SYNC_CRON
+    SyncService --> EventsPaginator : iterates
+    SyncService --> EventRepository : upsert
+    SyncService --> SyncRepository : update
+    SyncService --> EventsProviderClient : creates
+
+    %% ═══════════════════ MAIN APP ═══════════════════
+    class FastAPI_App {
+        &lt;&lt;FastAPI&gt;&gt;
+        lifespan: start_scheduler / stop_scheduler
+    }
+
+    FastAPI_App --> EventsRouter : include_router
+    FastAPI_App --> TicketsRouter : include_router
+    FastAPI_App --> SyncRouter : include_router
+    FastAPI_App --> HealthRouter : include_router
+    FastAPI_App --> Scheduler : lifespan
+    Settings --> FastAPI_App : configures
+    Settings --> EventsProviderClient : base_url, api_key
